@@ -1,0 +1,1046 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Human Skeletal System Lab Challenge</title>
+    <style>
+        :root {
+            --bg-color: #f0f4f8;
+            --text-color: #2c3e50;
+            --land-color: #d4e157;
+            --water-color: #81d4fa;
+            --special-color: #ffcc80;
+            --accent-blue: #1a5276;
+            --light-blue: #2980b9;
+            --error-red: #e74c3c;
+            --gold: #d4af37;
+        }
+
+        html, body {
+            overflow-x: hidden;
+            margin: 0;
+            padding: 0;
+            width: 100%;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            position: relative;
+            user-select: none;
+        }
+
+        /* --- OVERLAYS --- */
+        .screen-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.92);
+            color: white;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 3000;
+            text-align: center;
+            padding: 20px;
+            box-sizing: border-box;
+            overflow-y: auto;
+        }
+
+        #start-screen {
+            display: flex;
+            background: linear-gradient(135deg, #1a5276, #2980b9);
+        }
+
+        .name-input {
+            padding: 15px;
+            font-size: 1.2rem;
+            border-radius: 10px;
+            border: none;
+            margin: 20px;
+            width: 320px;
+            max-width: 85%;
+            text-align: center;
+            outline: none;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+
+        /* --- CERTIFICATE STYLE --- */
+        #certificate {
+            display: none;
+            background: white;
+            color: #333;
+            width: 820px;
+            max-width: 95%;
+            padding: 35px;
+            border: 15px double var(--gold);
+            border-radius: 10px;
+            box-shadow: 0 0 35px rgba(0,0,0,0.6);
+            position: relative;
+            text-align: center;
+            box-sizing: border-box;
+        }
+
+        .cert-title {
+            font-family: 'Georgia', serif;
+            font-size: 2.8rem;
+            color: #b8860b;
+            margin-bottom: 10px;
+        }
+
+        .cert-name {
+            font-size: 2.4rem;
+            font-style: italic;
+            border-bottom: 2px solid #333;
+            display: inline-block;
+            margin: 15px 0;
+            padding: 0 40px;
+            font-family: 'Brush Script MT', cursive;
+        }
+
+        .cert-text {
+            font-size: 1.25rem;
+            line-height: 1.6;
+            margin: 15px 0;
+        }
+
+        .instruction-box {
+            background: #fff3cd;
+            color: #856404;
+            padding: 14px 20px;
+            border-radius: 10px;
+            border: 1px solid #ffeeba;
+            margin-top: 25px;
+            font-weight: bold;
+            font-size: 1.05rem;
+            max-width: 820px;
+        }
+
+        /* --- GAME ELEMENTS --- */
+        #mistake-counter {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: white;
+            border: 3px solid var(--error-red);
+            color: var(--error-red);
+            padding: 10px 20px;
+            border-radius: 15px;
+            font-weight: bold;
+            font-size: 1.2rem;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+            z-index: 3000;
+            pointer-events: none;
+            display: none;
+        }
+
+        .orbit-lane {
+            position: absolute; 
+            top: 0;
+            width: 100%; 
+            height: 100%; 
+            z-index: 5;
+            pointer-events: none;
+        }
+
+        .main-content {
+            width: 860px;
+            max-width: 95%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            z-index: 10;
+            margin-bottom: 200px;
+            display: none;
+        }
+
+        #header {
+            text-align: center;
+            padding: 20px;
+            background: white;
+            width: 100%;
+            box-shadow: 0 2px 12px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            border-radius: 0 0 20px 20px;
+            box-sizing: border-box;
+        }
+
+        #header h1 {
+            margin: 0;
+            font-size: 1.7rem;
+            color: var(--accent-blue);
+        }
+
+        .stats {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-top: 10px;
+        }
+
+        .section-title {
+            width: 100%;
+            margin: 25px 0 10px 0;
+            font-size: 1.5rem;
+            font-weight: bold;
+            border-bottom: 3px solid #ccc;
+            padding-bottom: 5px;
+            text-align: center;
+            color: var(--accent-blue);
+        }
+
+        .grid-container {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            padding: 20px 0;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .biome-zone {
+            border: 3px dashed #999;
+            border-radius: 15px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 160px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 1rem;
+            transition: all 0.2s ease;
+            padding: 15px;
+            background-color: white;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+            box-sizing: border-box;
+        }
+
+        .land { background-color: #f1f8e9; border-color: #8bc34a; }
+        .water { background-color: #e1f5fe; border-color: #03a9f4; }
+        .special { background-color: #fff3e0; border-color: #ff9800; }
+
+        .biome-zone.highlight {
+            transform: scale(1.05);
+            background-color: #fff !important;
+            border-style: solid;
+            box-shadow: 0 0 20px rgba(0,0,0,0.25);
+        }
+
+        .item {
+            width: 205px;
+            box-sizing: border-box;
+            padding: 14px;
+            background: white;
+            border: 2px solid var(--light-blue);
+            border-radius: 10px;
+            text-align: center;
+            cursor: grab;
+            box-shadow: 0 6px 14px rgba(0,0,0,0.18);
+            font-size: 0.88rem;
+            line-height: 1.35;
+            font-weight: bold;
+            position: absolute;
+            z-index: 100;
+            pointer-events: auto;
+            touch-action: none;
+            transition: transform 0.1s;
+        }
+
+        .returning {
+            transition: left 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275), 
+                        right 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275), 
+                        top 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) !important;
+        }
+
+        .item:active { cursor: grabbing; transform: scale(1.08); }
+
+        @keyframes float {
+            0%, 100% { transform: translate(0, 0); }
+            50% { transform: translate(8px, -12px); }
+        }
+
+        .floating { animation: float 5.5s ease-in-out infinite; }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-9px); }
+            75% { transform: translateX(9px); }
+        }
+
+        .wrong { animation: shake 0.4s ease-in-out; }
+
+        button {
+            padding: 14px 28px;
+            font-size: 1.15rem;
+            font-weight: bold;
+            cursor: pointer;
+            background: #27ae60;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            margin-top: 18px;
+            transition: background 0.2s, transform 0.1s;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+        }
+
+        button:hover {
+            background: #219653;
+            transform: translateY(-2px);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        .quiz-opt-btn {
+            background: white;
+            color: #2c3e50;
+            border: 2px solid var(--light-blue);
+            text-align: left;
+            font-weight: 600;
+            padding: 14px 18px;
+            font-size: 0.95rem;
+            line-height: 1.4;
+            border-radius: 8px;
+            margin-top: 0;
+            transition: background 0.15s, border-color 0.15s;
+        }
+
+        .quiz-opt-btn:hover {
+            background: #eef5fa;
+            border-color: var(--accent-blue);
+            transform: translateY(-1px);
+        }
+
+        @media (max-width: 768px) {
+            .grid-container {
+                grid-template-columns: 1fr;
+            }
+            .item {
+                width: 175px;
+                font-size: 0.82rem;
+                padding: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- START SCREEN -->
+    <div id="start-screen" class="screen-overlay">
+        <h1>🦴 Human Skeletal System Lab Challenge</h1>
+        <p style="font-size: 1.15rem; max-width: 600px; line-height: 1.5;">
+            Master skeletal anatomy, bone remodeling dynamics, calcium homeostasis, Wolff's law, fracture repair, and clinical joint pathology.
+        </p>
+        <p>Please enter your <b style="color: #ffcc80;">First Name and Last Initial</b> (e.g., Alex M.):</p>
+        <input type="text" id="student-name-input" class="name-input" placeholder="First Name Last Initial" onkeydown="if(event.key==='Enter') beginGame();">
+        <button id="start-btn" onclick="beginGame()">Start Assignment ➔</button>
+    </div>
+
+    <div id="mistake-counter">Mistakes: 0 / 5</div>
+
+    <div class="orbit-lane" id="lane-orbit"></div>
+
+    <div class="main-content" id="main-content">
+        <div id="header">
+            <h1 id="level-title">Level 1: Skeletal Divisions &amp; Classifications</h1>
+            <p id="level-desc">Match each anatomical structure to the correct skeletal division or matrix architecture.</p>
+            <div class="stats">Progress: <span id="score">0</span> / <span id="total">0</span></div>
+        </div>
+
+        <div id="biomes-area"></div>
+    </div>
+
+    <!-- NEXT LEVEL SCREEN -->
+    <div id="next-level-screen" class="screen-overlay">
+        <h1 id="next-title">🌟 Level Complete!</h1>
+        <div id="next-content" style="max-width: 650px; font-size: 1.15rem; line-height: 1.6;"></div>
+    </div>
+
+    <!-- FAIL SCREEN -->
+    <div id="fail-screen" class="screen-overlay">
+        <h1 style="color: var(--error-red); font-size: 2.5rem;">❌ Level Failed!</h1>
+        <p style="font-size: 1.2rem; max-width: 600px;">You reached the mistake limit for this level. Review your Skeletal System notes and try again!</p>
+        <button onclick="retryCurrentLevel()" style="background: var(--error-red);">Retry This Level 🔄</button>
+    </div>
+
+    <!-- CERTIFICATE SCREEN -->
+    <div id="cert-screen" class="screen-overlay">
+        <div id="certificate">
+            <div class="cert-title">Certificate of Achievement</div>
+            <div class="cert-text">This certifies that</div>
+            <div id="cert-name" class="cert-name">Student Name</div>
+            <div class="cert-text">has successfully completed the<br><b>Human Skeletal System Lab Challenge</b><br>demonstrating mastery of Bone Anatomy, Cellular Dynamics, Calcium Homeostasis, Wolff's Law, and Clinical Joint Pathology.</div>
+            <div id="score-table-placeholder"></div>
+            <div style="margin-top: 15px; font-size: 0.95rem; color: #666;">Date Completed: <span id="cert-date"></span></div>
+        </div>
+        <div class="instruction-box">
+            📸 <b>ACTION REQUIRED:</b> Take a full screenshot of this certificate and upload it to Google Classroom to receive full lab credit!
+        </div>
+        <button onclick="location.reload()" style="background: #1a5276;">Restart Activity</button>
+    </div>
+
+    <script>
+        const levelData = {
+            1: {
+                title: "Level 1: Skeletal Divisions & Classifications",
+                desc: "Investigate skeletal architecture by dragging each anatomical structure to its correct division or matrix zone.",
+                maxMistakes: 5,
+                biomes: [
+                    { id: 'axial', name: 'Axial Skeleton', class: 'land', text: '<b>Axial Skeleton</b><br>Central protective axis (Skull, Spine, Thorax)' },
+                    { id: 'appendicular', name: 'Appendicular Skeleton', class: 'water', text: '<b>Appendicular Skeleton</b><br>Limbs & Girdles (Locomotion & Manipulation)' },
+                    { id: 'microstructure', name: 'Bone Microstructure', class: 'special', text: '<b>Bone Microstructure</b><br>Internal Histology & Matrix Architecture' }
+                ],
+                items: [
+                    { text: 'Cranium & Vertebral column', biome: 'axial' },
+                    { text: 'Sternum & True/False ribs', biome: 'axial' },
+                    { text: 'Pectoral girdle & Humerus', biome: 'appendicular' },
+                    { text: 'Pelvic girdle & Femur', biome: 'appendicular' },
+                    { text: 'Osteons & Haversian canals', biome: 'microstructure' },
+                    { text: 'Trabeculae & Red bone marrow', biome: 'microstructure' }
+                ]
+            },
+            2: {
+                title: "Level 2: Bone Cell Dynamics & Remodeling",
+                desc: "Drag each physiological activity and hormonal response to the responsible bone cell type.",
+                maxMistakes: 3,
+                biomes: [
+                    { id: 'osteoblast', name: 'Osteoblasts', class: 'land', text: '<b>Osteoblasts</b><br>Bone-Building & Matrix Deposition' },
+                    { id: 'osteoclast', name: 'Osteoclasts', class: 'water', text: '<b>Osteoclasts</b><br>Bone Resorption & Matrix Breakdown' },
+                    { id: 'osteocyte', name: 'Osteocytes', class: 'special', text: '<b>Osteocytes</b><br>Mature Cells & Mechanical Sensing' }
+                ],
+                items: [
+                    { text: 'Secretes osteoid collagen matrix for new calcification', biome: 'osteoblast' },
+                    { text: 'Stimulated by mechanical load to deposit calcium', biome: 'osteoblast' },
+                    { text: 'Uses acids & enzymes to dissolve matrix and release Ca2+', biome: 'osteoclast' },
+                    { text: 'Activated by Parathyroid Hormone (PTH) during hypocalcemia', biome: 'osteoclast' },
+                    { text: 'Resides inside lacunae and monitors mechanical strain', biome: 'osteocyte' },
+                    { text: 'Communicates through cytoplasmic extensions in canaliculi', biome: 'osteocyte' }
+                ]
+            },
+            3: {
+                title: "Level 3: Calcium Homeostasis & Endocrine Lab",
+                desc: "Analyze endocrine laboratory data and interpret how the skeletal system regulates blood calcium concentrations.",
+                maxMistakes: 2,
+                isQuiz: true,
+                data: {
+                    table: `
+                        <table style='width:100%; border-collapse:collapse; background:white; color:black; font-family:sans-serif; font-size:0.92rem; border: 2px solid #1a5276;'>
+                            <tr style='background:#1a5276; color:white;'>
+                                <th style='border: 1px solid #ccc; padding: 9px;'>Condition</th>
+                                <th style='border: 1px solid #ccc; padding: 9px;'>Blood Ca2+</th>
+                                <th style='border: 1px solid #ccc; padding: 9px;'>PTH Level</th>
+                                <th style='border: 1px solid #ccc; padding: 9px;'>Calcitonin</th>
+                                <th style='border: 1px solid #ccc; padding: 9px;'>Skeletal Response</th>
+                            </tr>
+                            <tr style='text-align:center;'>
+                                <td style='border: 1px solid #ccc; padding: 9px; font-weight:bold;'>Hypocalcemia</td>
+                                <td style='border: 1px solid #ccc; padding: 9px; color:#e74c3c; font-weight:bold;'>&lt; 8.5 mg/dL</td>
+                                <td style='border: 1px solid #ccc; padding: 9px; font-weight:bold;'>High</td>
+                                <td style='border: 1px solid #ccc; padding: 9px;'>Low</td>
+                                <td style='border: 1px solid #ccc; padding: 9px;'>Osteoclasts resorb bone matrix; Ca2+ released to blood</td>
+                            </tr>
+                            <tr style='text-align:center;'>
+                                <td style='border: 1px solid #ccc; padding: 9px; font-weight:bold;'>Normocalcemia</td>
+                                <td style='border: 1px solid #ccc; padding: 9px; color:#27ae60; font-weight:bold;'>9.0–10.5 mg/dL</td>
+                                <td style='border: 1px solid #ccc; padding: 9px;'>Basal</td>
+                                <td style='border: 1px solid #ccc; padding: 9px;'>Basal</td>
+                                <td style='border: 1px solid #ccc; padding: 9px;'>Dynamic equilibrium (balanced resorption and deposition)</td>
+                            </tr>
+                            <tr style='text-align:center;'>
+                                <td style='border: 1px solid #ccc; padding: 9px; font-weight:bold;'>Hypercalcemia</td>
+                                <td style='border: 1px solid #ccc; padding: 9px; color:#2980b9; font-weight:bold;'>&gt; 11.5 mg/dL</td>
+                                <td style='border: 1px solid #ccc; padding: 9px;'>Inhibited</td>
+                                <td style='border: 1px solid #ccc; padding: 9px; font-weight:bold;'>Elevated</td>
+                                <td style='border: 1px solid #ccc; padding: 9px;'>Osteoblasts deposit excess Ca2+ salts into bone matrix</td>
+                            </tr>
+                        </table>
+                    `,
+                    questions: [
+                        { q: "Which endocrine response is triggered immediately when blood calcium drops below 8.5 mg/dL?", options: ["Parathyroid glands release PTH to activate osteoclasts", "Thyroid gland releases calcitonin to dissolve compact bone", "Osteoblasts convert bone marrow into adipose fat", "Kidneys completely stop filtering blood"], correct: 0 },
+                        { q: "Why is rapid calcium release into the bloodstream vital for immediate survival?", options: ["Calcium is required for heart contractions, nerve impulse transmission, and blood clotting", "Low blood calcium causes articular cartilage to liquefy", "Bones require blood calcium to stop the epiphyseal plate from vanishing", "Calcium is needed only to colorize red bone marrow"], correct: 0 },
+                        { q: "What occurs when blood calcium rises to an abnormally high level (11.5 mg/dL)?", options: ["PTH is inhibited and osteoblasts deposit excess calcium into the matrix", "Osteoclasts dissolve the skull's sella turcica", "Articular cartilage turns directly into elastic ligaments", "Canaliculi close permanently to trap blood vessels"], correct: 0 },
+                        { q: "Which core principle does this endocrine data demonstrate?", options: ["Bones function as an active, dynamic calcium reservoir regulated by negative feedback", "Bone mineral composition remains completely inert after puberty", "Blood calcium levels are regulated solely by sweating", "Osteoclasts only function in elderly individuals"], correct: 0 }
+                    ]
+                }
+            },
+            4: {
+                title: "Level 4: Wolff's Law & Bone Density Lab",
+                desc: "Evaluate experimental DXA scan data on mechanical stress, cortical bone remodeling, and fracture risks.",
+                maxMistakes: 1,
+                isQuiz: true,
+                data: {
+                    table: `
+                        <table style='width:100%; border-collapse:collapse; background:white; color:black; font-family:sans-serif; font-size:0.92rem; border: 2px solid #1a5276;'>
+                            <tr style='background:#1a5276; color:white;'>
+                                <th style='border: 1px solid #ccc; padding: 9px;'>Group</th>
+                                <th style='border: 1px solid #ccc; padding: 9px;'>12-Week Intervention</th>
+                                <th style='border: 1px solid #ccc; padding: 9px;'>Cortical Thickness</th>
+                                <th style='border: 1px solid #ccc; padding: 9px;'>Trabecular BMD (T-Score)</th>
+                                <th style='border: 1px solid #ccc; padding: 9px;'>Fracture Vulnerability</th>
+                            </tr>
+                            <tr style='text-align:center;'>
+                                <td style='border: 1px solid #ccc; padding: 9px; font-weight:bold;'>A</td>
+                                <td style='border: 1px solid #ccc; padding: 9px;'>Complete Bed Rest (Zero load)</td>
+                                <td style='border: 1px solid #ccc; padding: 9px; color:#e74c3c;'>-9.4%</td>
+                                <td style='border: 1px solid #ccc; padding: 9px;'>-2.8 (Osteoporotic)</td>
+                                <td style='border: 1px solid #ccc; padding: 9px; font-weight:bold; color:#e74c3c;'>Very High</td>
+                            </tr>
+                            <tr style='text-align:center;'>
+                                <td style='border: 1px solid #ccc; padding: 9px; font-weight:bold;'>B</td>
+                                <td style='border: 1px solid #ccc; padding: 9px;'>Moderate Walking (Low impact)</td>
+                                <td style='border: 1px solid #ccc; padding: 9px;'>+0.9%</td>
+                                <td style='border: 1px solid #ccc; padding: 9px;'>-0.3 (Normal)</td>
+                                <td style='border: 1px solid #ccc; padding: 9px; color:#27ae60;'>Low</td>
+                            </tr>
+                            <tr style='text-align:center;'>
+                                <td style='border: 1px solid #ccc; padding: 9px; font-weight:bold;'>C</td>
+                                <td style='border: 1px solid #ccc; padding: 9px;'>Resistance &amp; Impact Training</td>
+                                <td style='border: 1px solid #ccc; padding: 9px; color:#27ae60; font-weight:bold;'>+5.2%</td>
+                                <td style='border: 1px solid #ccc; padding: 9px; font-weight:bold;'>+1.5 (Optimal)</td>
+                                <td style='border: 1px solid #ccc; padding: 9px; font-weight:bold; color:#27ae60;'>Minimal</td>
+                            </tr>
+                        </table>
+                    `,
+                    questions: [
+                        { q: "Which experimental cohort suffered the greatest reduction in bone mass and density?", options: ["Group A (Bed Rest)", "Group B (Moderate Walking)", "Group C (Resistance Training)", "All cohorts remained identical"], correct: 0 },
+                        { q: "How does Wolff's law explain the +5.2% cortical thickening in Group C?", options: ["Bone remodels and thickens along lines of mechanical stress applied by muscles and gravity", "Resistance training converts yellow bone marrow into synovial fluid", "Mechanical strain paralyzes osteoblasts while speeding up osteoclasts", "Impact exercise removes calcium salts to make bones flexible like rubber"], correct: 0 },
+                        { q: "Why are bed-rest and immobilized patients prone to spontaneous fractures?", options: ["Lack of mechanical stress leaves osteoblasts sluggish while osteoclasts continue resorbing matrix", "Immobility increases estrogen levels that destroy collagen fibers", "Lying down blocks red blood cells from entering Volkmann's canals", "Lack of walking causes epiphyseal plates to turn into hyaline cartilage"], correct: 0 },
+                        { q: "What evidence-based clinical strategy best maintains bone mineral density in aging adults?", options: ["Regular weight-bearing and resistance exercise combined with calcium and vitamin D", "Strict bed rest to avoid all impact on the skeleton", "Eliminating all protein and minerals from the diet", "Avoiding outdoor sunlight and limiting walking"], correct: 0 }
+                    ]
+                }
+            },
+            5: {
+                title: "Level 5: Clinical Inquiry: Fracture Repair Sequence",
+                desc: "Investigate an athletic trauma case and evaluate the chronological physiological repair stages.",
+                maxMistakes: 1,
+                isQuiz: true,
+                data: {
+                    table: `
+                        <div style='background:white; color:black; padding:18px; border:2px solid #1a5276; font-family:sans-serif; font-size:0.95rem; border-radius:8px;'>
+                            <b style='font-size:1.15rem; color:#1a5276;'>Clinical Inquiry: Marcus, 17</b><br><br>
+                            Marcus suffered a high-impact tackle to his right leg during a soccer game. He presents with severe localized pain, rapid swelling, and inability to bear weight. Peripheral pulses and nerve sensation in the foot are intact.<br>
+                            <br><b>Radiograph (X-Ray):</b> Closed, non-displaced transverse fracture of the mid-diaphyseal tibia.<br>
+                            <b>Histological Timeline:</b>
+                            <ul style='margin: 8px 0; padding-left: 20px;'>
+                                <li><b>Day 3:</b> Extensive blood clot (hematoma) fills the gap; nearby bone cells deprived of blood die.</li>
+                                <li><b>Week 3:</b> Capillaries invade; granulation tissue, chondrocytes, and collagen form a soft splint.</li>
+                                <li><b>Week 8:</b> Osteoblasts and osteoclasts transform the soft repair tissue into a hard spongy mass.</li>
+                                <li><b>Month 6:</b> Compact bone replaces outer spongy bone in response to mechanical weight-bearing.</li>
+                            </ul>
+                        </div>
+                    `,
+                    questions: [
+                        { q: "What is the immediate initial vascular event occurring at Marcus's fracture site during days 1–3?", options: ["Torn blood vessels hemorrhage to form a fracture hematoma", "Osteoblasts immediately weld the broken ends with compact bone", "Cartilage dissolves to expose the medullary cavity to air", "Yellow bone marrow turns directly into Sharpey's fibers"], correct: 0 },
+                        { q: "What structure provides the internal/external splint bridging the fracture gap at week 3?", options: ["A fibrocartilage (soft) callus containing collagen, cartilage, and new capillaries", "A rigid bony callus of mature compact bone", "A dense mass of uric acid crystals", "A permanent synovial membrane"], correct: 0 },
+                        { q: "Which event characterizes the third major stage of fracture repair observed at week 8?", options: ["Osteoblasts and osteoclasts replace fibrocartilage with a bony callus of spongy bone", "Phagocytes permanently remove all bone marrow", "The periosteum vanishes to prevent further bone growth", "The bone permanently stays in a soft cartilaginous state"], correct: 0 },
+                        { q: "Why does Marcus's healed bone eventually remodel to match its original mechanical contour?", options: ["Bone remodeling responds to mechanical stress from walking and muscle tension", "The cast permanently locks the bone cells in place", "Spongy bone can never be converted into compact bone", "Osteocytes divide continuously like skin epidermal cells"], correct: 0 }
+                    ]
+                }
+            },
+            6: {
+                title: "Level 6: Diagnostic Forecast: Joint Pathology",
+                desc: "Differentiate three joint pathologies using synovial fluid analysis, clinical presentation, and imaging data.",
+                maxMistakes: 1,
+                isQuiz: true,
+                data: {
+                    table: `
+                        <div style='background:white; color:black; padding:18px; border:2px solid #1a5276; font-family:sans-serif; font-size:0.95rem; border-radius:8px;'>
+                            <b style='font-size:1.15rem; color:#1a5276;'>Patient Comparative Laboratory Data</b><br><br>
+                            - <b>Patient 1 (Age 71, Male):</b> Unilateral knee stiffness worsening with activity; crunching sound (crepitus); X-ray shows worn articular cartilage and osteophytes (bone spurs); non-inflammatory synovial fluid.<br>
+                            - <b>Patient 2 (Age 41, Female):</b> Bilateral, symmetrical swelling and heat in wrists and finger joints lasting &gt; 1 hr every morning; elevated rheumatoid factor (RF); joint biopsy reveals destructive pannus tissue.<br>
+                            - <b>Patient 3 (Age 52, Male):</b> Sudden, excruciating nocturnal pain and throbbing in the right great toe (1st metatarsophalangeal joint); aspiration reveals needle-shaped monosodium urate crystals.
+                        </div>
+                    `,
+                    questions: [
+                        { q: "Which joint pathology is Patient 1 exhibiting based on wear-and-tear cartilage loss and osteophytes?", options: ["Osteoarthritis (OA)", "Rheumatoid Arthritis (RA)", "Gouty Arthritis (Gout)", "Septic Bursitis"], correct: 0 },
+                        { q: "What autoimmune hallmark definitively identifies Patient 2's condition as Rheumatoid Arthritis?", options: ["Symmetrical joint attacks and abnormal pannus tissue invading the articular cartilage", "Needle-shaped uric acid crystals inside the synovial fluid", "Degeneration limited strictly to one knee from overuse", "Complete lack of any immune cell involvement"], correct: 0 },
+                        { q: "What metabolic etiology explains Patient 3's acute big toe inflammation?", options: ["High blood uric acid levels precipitating sharp needle crystals in the synovial joint", "Bacterial infection transmitted through Volkmann's canals", "Complete failure of the parathyroid gland", "Dislocation of the acetabulum"], correct: 0 },
+                        { q: "Why is accurate differential diagnosis between Patient 1 and Patient 2 vital for therapy?", options: ["Patient 2 requires immune-modulating drugs (DMARDs) to halt systemic joint destruction, while Patient 1 focuses on biomechanical cartilage protection", "Patient 1 requires immediate purine restriction, while Patient 2 has a simple greenstick fracture", "Both conditions are identical and require identical antibiotic therapy", "Patient 2 only needs ice, while Patient 1 has an emergency infection"], correct: 0 }
+                    ]
+                }
+            }
+        };
+
+        let levelScores = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 };
+        let levelTrials = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 };
+        let levelTimes = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: 0 };
+        let completedLevels = { 1: false, 2: false, 3: false, 4: false, 5: false, 6: false };
+        let studentName = "";
+        let currentLevel = 1;
+        let score = 0;
+        let mistakes = 0;
+        let currentMaxMistakes = 5;
+        let activeItem = null;
+        let offsetX = 0;
+        let offsetY = 0;
+        let scrollInterval = null;
+        let levelStartTime = 0;
+
+        function beginGame() {
+            const input = document.getElementById('student-name-input');
+            const val = input ? input.value.trim() : "";
+            if (val === "") {
+                alert("Please enter your First Name and Last Initial to begin the lab challenge!");
+                if (input) input.focus();
+                return;
+            }
+            studentName = val;
+            document.getElementById('start-screen').style.display = 'none';
+            document.getElementById('main-content').style.display = 'flex';
+            document.getElementById('mistake-counter').style.display = 'block';
+            startLevel(1);
+        }
+
+        function retryCurrentLevel() {
+            document.getElementById('fail-screen').style.display = 'none';
+            
+            // Clean up all items from DOM before restarting
+            document.querySelectorAll('.item').forEach(item => item.remove());
+            startLevel(currentLevel);
+        }
+
+        function startLevel(lvl) {
+            document.getElementById('next-level-screen').style.display = 'none';
+            document.getElementById('fail-screen').style.display = 'none';
+            
+            currentLevel = lvl;
+            score = 0;
+            mistakes = 0;
+            currentMaxMistakes = levelData[lvl].maxMistakes;
+            levelTrials[lvl]++;
+            levelStartTime = Date.now();
+            
+            document.getElementById('mistake-counter').innerText = `Mistakes: 0 / ${currentMaxMistakes}`;
+            document.getElementById('level-title').innerText = levelData[lvl].title;
+            document.getElementById('level-desc').innerHTML = levelData[lvl].desc;
+            document.getElementById('score').innerText = "0";
+            document.getElementById('total').innerText = levelData[lvl].isQuiz ? levelData[lvl].data.questions.length : levelData[lvl].items.length;
+
+            document.getElementById('biomes-area').innerHTML = "";
+            document.getElementById('lane-orbit').innerHTML = "";
+            document.querySelectorAll('.item').forEach(item => item.remove());
+
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+
+            if (levelData[lvl].isQuiz) {
+                renderQuiz(lvl);
+                return;
+            }
+
+            const grid = document.createElement('div');
+            grid.className = 'grid-container';
+            levelData[lvl].biomes.forEach(b => {
+                const zone = document.createElement('div');
+                zone.className = `biome-zone ${b.class}`;
+                zone.dataset.biome = b.id;
+                zone.innerHTML = b.text;
+                grid.appendChild(zone);
+            });
+            
+            const title = document.createElement('div');
+            title.className = 'section-title';
+            title.innerText = lvl === 1 ? "Skeletal Divisions & Histology" : "Bone Remodeling Dynamics";
+            
+            document.getElementById('biomes-area').appendChild(title);
+            document.getElementById('biomes-area').appendChild(grid);
+
+            const shuffledItems = shuffle([...levelData[lvl].items]);
+            spawnItems(shuffledItems);
+        }
+
+        function renderQuiz(lvl) {
+            const area = document.getElementById('biomes-area');
+            const quizData = levelData[lvl].data;
+            
+            const container = document.createElement('div');
+            container.style.width = '100%';
+            container.style.display = 'flex';
+            container.style.flexDirection = 'column';
+            container.style.alignItems = 'center';
+            container.style.marginTop = '25px';
+
+            const tableDiv = document.createElement('div');
+            tableDiv.style.width = '100%';
+            tableDiv.style.marginBottom = '35px';
+            tableDiv.innerHTML = quizData.table;
+            container.appendChild(tableDiv);
+
+            const qDiv = document.createElement('div');
+            qDiv.id = 'quiz-question-container';
+            qDiv.style.textAlign = 'center';
+            qDiv.style.width = '100%';
+            container.appendChild(qDiv);
+
+            area.appendChild(container);
+            showQuestion(lvl, 0);
+        }
+
+        function showQuestion(lvl, qIdx) {
+            const qContainer = document.getElementById('quiz-question-container');
+            const qData = levelData[lvl].data.questions[qIdx];
+            
+            const optionsWithIndices = qData.options.map((opt, i) => ({ text: opt, index: i }));
+            const shuffledOptions = shuffle([...optionsWithIndices]);
+            
+            qContainer.innerHTML = `
+                <div style="font-size:1.35rem; font-weight:bold; margin-bottom:18px; color:var(--accent-blue);">
+                    Question ${qIdx + 1} of ${levelData[lvl].data.questions.length}: ${qData.q}
+                </div>
+                <div class="grid-container" style="grid-template-columns: repeat(2, 1fr); gap: 14px;">
+                    ${shuffledOptions.map(optObj => `
+                        <button class="quiz-opt-btn" onclick="checkQuizAnswer(${lvl}, ${qIdx}, ${optObj.index})">
+                            ${optObj.text}
+                        </button>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        function checkQuizAnswer(lvl, qIdx, selectedIdx) {
+            const qData = levelData[lvl].data.questions[qIdx];
+            if (selectedIdx === qData.correct) {
+                score++;
+                document.getElementById('score').innerText = score;
+                if (qIdx + 1 < levelData[lvl].data.questions.length) {
+                    showQuestion(lvl, qIdx + 1);
+                } else {
+                    levelScores[lvl] = score;
+                    levelTimes[lvl] = Math.floor((Date.now() - levelStartTime) / 1000);
+                    completedLevels[lvl] = true;
+                    handleLevelCompletion();
+                }
+            } else {
+                mistakes++;
+                document.getElementById('mistake-counter').innerText = `Mistakes: ${mistakes} / ${currentMaxMistakes}`;
+                if (mistakes >= currentMaxMistakes) {
+                    document.getElementById('fail-screen').style.display = 'flex';
+                } else {
+                    alert("Incorrect choice! Review the data table and try again.");
+                }
+            }
+        }
+
+        function shuffle(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        function spawnItems(items) {
+            const lane = document.getElementById('lane-orbit');
+            items.forEach((item, index) => {
+                const el = document.createElement('div');
+                el.className = 'item floating';
+                el.innerText = item.text;
+                el.dataset.biome = item.biome;
+                const side = index % 2 === 0 ? 'left' : 'right';
+                const spacing = 135;
+                const startY = side === 'left' ? 100 : 150;
+                const targetY = startY + (Math.floor(index / 2) * spacing);
+                
+                if (side === 'left') { 
+                    el.style.left = '20px'; 
+                    el.style.right = 'auto'; 
+                } else { 
+                    el.style.right = '20px'; 
+                    el.style.left = 'auto'; 
+                }
+                
+                el.dataset.homeSide = side;
+                el.dataset.homeY = targetY;
+                el.style.top = targetY + 'px';
+                el.style.animationDelay = (Math.random() * 4) + 's';
+
+                const grabHandler = (clientX, clientY, pageX, pageY) => {
+                    activeItem = el;
+                    el.classList.remove('floating', 'returning');
+                    const rect = el.getBoundingClientRect();
+                    offsetX = clientX - rect.left;
+                    offsetY = clientY - rect.top;
+                    document.body.appendChild(el);
+                    el.style.right = 'auto';
+                    el.style.left = (pageX - offsetX) + 'px';
+                    el.style.top = (pageY - offsetY) + 'px';
+                    el.style.zIndex = 2000;
+                };
+
+                el.addEventListener('mousedown', (e) => {
+                    grabHandler(e.clientX, e.clientY, e.pageX, e.pageY);
+                });
+
+                el.addEventListener('touchstart', (e) => {
+                    if (e.touches.length === 1) {
+                        const t = e.touches[0];
+                        grabHandler(t.clientX, t.clientY, t.pageX, t.pageY);
+                        e.preventDefault();
+                    }
+                }, { passive: false });
+
+                lane.appendChild(el);
+            });
+        }
+
+        const moveHandler = (clientX, clientY, pageX, pageY) => {
+            if (!activeItem) return;
+            activeItem.style.left = (pageX - offsetX) + 'px';
+            activeItem.style.top = (pageY - offsetY) + 'px';
+            
+            const scrollThreshold = 90; 
+            const scrollSpeed = 12;
+            if (clientY < scrollThreshold) {
+                if (!scrollInterval) scrollInterval = setInterval(() => window.scrollBy(0, -scrollSpeed), 16);
+            } else if (clientY > window.innerHeight - scrollThreshold) {
+                if (!scrollInterval) scrollInterval = setInterval(() => window.scrollBy(0, scrollSpeed), 16);
+            } else { 
+                clearInterval(scrollInterval); 
+                scrollInterval = null; 
+            }
+
+            document.querySelectorAll('.biome-zone').forEach(zone => {
+                const rect = zone.getBoundingClientRect();
+                if (clientX > rect.left && clientX < rect.right && clientY > rect.top && clientY < rect.bottom) {
+                    zone.classList.add('highlight');
+                } else { 
+                    zone.classList.remove('highlight'); 
+                }
+            });
+        };
+
+        window.addEventListener('mousemove', (e) => {
+            moveHandler(e.clientX, e.clientY, e.pageX, e.pageY);
+        });
+
+        window.addEventListener('touchmove', (e) => {
+            if (activeItem && e.touches.length === 1) {
+                const t = e.touches[0];
+                moveHandler(t.clientX, t.clientY, t.pageX, t.pageY);
+                e.preventDefault();
+            }
+        }, { passive: false });
+
+        const dropHandler = (clientX, clientY) => {
+            if (!activeItem) return;
+            const item = activeItem;
+            activeItem = null;
+            clearInterval(scrollInterval);
+            scrollInterval = null;
+            item.style.pointerEvents = 'none';
+
+            document.querySelectorAll('.biome-zone').forEach(z => z.classList.remove('highlight'));
+
+            const elementBelow = document.elementFromPoint(clientX, clientY);
+            const zone = elementBelow ? elementBelow.closest('.biome-zone') : null;
+
+            if (zone) {
+                if (zone.dataset.biome === item.dataset.biome) {
+                    score++;
+                    document.getElementById('score').innerText = score;
+                    item.style.position = 'static';
+                    item.style.margin = '6px';
+                    item.style.left = 'auto'; 
+                    item.style.right = 'auto'; 
+                    item.style.top = 'auto';
+                    item.classList.remove('floating', 'returning');
+                    item.style.animation = 'none'; 
+                    item.style.cursor = 'default'; 
+                    item.style.pointerEvents = 'auto';
+                    zone.appendChild(item);
+                    item.onmousedown = null;
+
+                    if (score === levelData[currentLevel].items.length) {
+                        levelScores[currentLevel] = score;
+                        levelTimes[currentLevel] = Math.floor((Date.now() - levelStartTime) / 1000);
+                        completedLevels[currentLevel] = true;
+                        handleLevelCompletion();
+                    }
+                } else {
+                    mistakes++;
+                    document.getElementById('mistake-counter').innerText = `Mistakes: ${mistakes} / ${currentMaxMistakes}`;
+                    if (mistakes >= currentMaxMistakes) { 
+                        document.getElementById('fail-screen').style.display = 'flex'; 
+                        return; 
+                    }
+                    item.classList.add('wrong');
+                    setTimeout(() => {
+                        item.classList.remove('wrong'); 
+                        item.classList.add('returning');
+                        const side = item.dataset.homeSide;
+                        if (side === 'left') { 
+                            item.style.right = 'auto'; 
+                            item.style.left = '20px'; 
+                        } else { 
+                            item.style.left = 'auto'; 
+                            item.style.right = '20px'; 
+                        }
+                        item.style.top = item.dataset.homeY + 'px';
+                        setTimeout(() => { 
+                            item.classList.remove('returning'); 
+                            document.getElementById('lane-orbit').appendChild(item); 
+                            item.style.pointerEvents = 'auto'; 
+                        }, 500);
+                    }, 400);
+                }
+            } else {
+                item.classList.add('returning');
+                const side = item.dataset.homeSide;
+                if (side === 'left') { 
+                    item.style.right = 'auto'; 
+                    item.style.left = '20px'; 
+                } else { 
+                    item.style.left = 'auto'; 
+                    item.style.right = '20px'; 
+                }
+                item.style.top = item.dataset.homeY + 'px';
+                setTimeout(() => { 
+                    item.classList.remove('returning'); 
+                    document.getElementById('lane-orbit').appendChild(item); 
+                    item.style.pointerEvents = 'auto'; 
+                }, 500);
+            }
+        };
+
+        window.addEventListener('mouseup', (e) => {
+            dropHandler(e.clientX, e.clientY);
+        });
+
+        window.addEventListener('touchend', (e) => {
+            if (e.changedTouches.length > 0) {
+                const t = e.changedTouches[0];
+                dropHandler(t.clientX, t.clientY);
+            }
+        });
+
+        function handleLevelCompletion() {
+            const nextScreen = document.getElementById('next-level-screen');
+            const nextTitle = document.getElementById('next-title');
+            const nextContent = document.getElementById('next-content');
+
+            if (currentLevel === 1) {
+                nextTitle.innerText = "🌟 Level 1 Complete!";
+                nextContent.innerHTML = `
+                    <p>Excellent! You classified the major skeletal divisions and bone matrix architecture.</p>
+                    <p>Next: Investigate how bone cells dynamically build, maintain, and remodel bone tissue.</p>
+                    <p><b style="color: #ffcc80;">Warning: Level 2 allows only 3 mistakes!</b></p>
+                    <button onclick="startLevel(2)">Start Level 2 ➡️</button>
+                `;
+            } else if (currentLevel === 2) {
+                nextTitle.innerText = "🌟 Level 2 Complete!";
+                nextContent.innerHTML = `
+                    <p>Great job! You mastered the functions of osteoblasts, osteoclasts, and osteocytes.</p>
+                    <p>Next: Analyze an endocrinology lab dataset to interpret how blood calcium homeostasis is maintained.</p>
+                    <p><b style="color: #ffcc80;">Warning: Level 3 allows only 2 mistakes!</b></p>
+                    <button onclick="startLevel(3)">Start Level 3 ➡️</button>
+                `;
+            } else if (currentLevel === 3) {
+                nextTitle.innerText = "🌟 Level 3 Complete!";
+                nextContent.innerHTML = `
+                    <p>You solved the calcium homeostasis endocrine inquiry.</p>
+                    <p>Next: Evaluate DXA bone density scan data to prove Wolff's law of mechanical adaptation.</p>
+                    <p><b style="color: #ffcc80;">Warning: Level 4 allows ONLY ONE mistake!</b></p>
+                    <button onclick="startLevel(4)">Start Level 4 ➡️</button>
+                `;
+            } else if (currentLevel === 4) {
+                nextTitle.innerText = "🌟 Level 4 Complete!";
+                nextContent.innerHTML = `
+                    <p>Outstanding! You proved Wolff's law and the impact of weight-bearing loading on bone mass.</p>
+                    <p>Next: Apply the 4-step physiological repair cascade to an acute adolescent tibial fracture.</p>
+                    <p><b style="color: #ffcc80;">Warning: Level 5 allows ONLY ONE mistake!</b></p>
+                    <button onclick="startLevel(5)">Start Level 5 ➡️</button>
+                `;
+            } else if (currentLevel === 5) {
+                nextTitle.innerText = "🌟 Level 5 Complete!";
+                nextContent.innerHTML = `
+                    <p>Clinical investigation solved! You mastered the sequence of bone fracture repair.</p>
+                    <p>Final Level: Differentiate between Osteoarthritis, Rheumatoid Arthritis, and Gout using patient lab panels.</p>
+                    <p><b style="color: #ffcc80;">Warning: Level 6 allows ONLY ONE mistake!</b></p>
+                    <button onclick="startLevel(6)">Start Level 6 ➡️</button>
+                `;
+            } else {
+                showCertificate();
+                return;
+            }
+            nextScreen.style.display = 'flex';
+        }
+
+        function showCertificate() {
+            const allDone = Object.values(completedLevels).every(val => val === true);
+            if (!allDone) {
+                alert("Access Denied: You must complete all 6 levels to earn your certificate!");
+                startLevel(1);
+                return;
+            }
+
+            document.getElementById('main-content').style.display = 'none';
+            document.getElementById('mistake-counter').style.display = 'none';
+            document.getElementById('cert-screen').style.display = 'flex';
+            document.getElementById('certificate').style.display = 'block';
+            document.getElementById('cert-name').innerText = studentName;
+            document.getElementById('cert-date').innerText = new Date().toLocaleDateString();
+
+            let totalPossible = 0;
+            let totalEarned = 0;
+            for (let lvl in levelData) {
+                totalPossible += levelData[lvl].isQuiz ? levelData[lvl].data.questions.length : levelData[lvl].items.length;
+                totalEarned += levelScores[lvl] || 0;
+            }
+            const percentage = Math.round((totalEarned / totalPossible) * 100);
+
+            let tableHtml = `
+                <div style="margin: 20px 0; color: #444;">
+                    <table style="width: 100%; border-collapse: collapse; font-size: 1.05rem; margin-bottom: 15px;">
+                        <thead>
+                            <tr style="border-bottom: 2px solid #b8860b;">
+                                <th style="padding: 8px; text-align: left;">Level Topic</th>
+                                <th style="padding: 8px; text-align: center;">Score</th>
+                                <th style="padding: 8px; text-align: center;">Trials</th>
+                                <th style="padding: 8px; text-align: center;">Time</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+            `;
+            for (let i = 1; i <= 6; i++) {
+                const possible = levelData[i].isQuiz ? levelData[i].data.questions.length : levelData[i].items.length;
+                tableHtml += `
+                    <tr style="border-bottom: 1px solid #ddd;">
+                        <td style="padding: 7px; text-align: left;">Level ${i}: ${levelData[i].title.split(':')[1] || levelData[i].title}</td>
+                        <td style="padding: 7px; text-align: center; font-weight: bold;">${levelScores[i]}/${possible}</td>
+                        <td style="padding: 7px; text-align: center;">${levelTrials[i]}</td>
+                        <td style="padding: 7px; text-align: center;">${levelTimes[i]}s</td>
+                    </tr>
+                `;
+            }
+            tableHtml += `
+                        </tbody>
+                    </table>
+                </div>
+                <div style="font-size: 1.7rem; font-weight: bold; color: #b8860b; margin-bottom: 15px;">
+                    Overall Mastery Score: ${percentage}%
+                </div>
+            `;
+
+            document.getElementById('score-table-placeholder').innerHTML = tableHtml;
+        }
+
+        // Attach listeners when DOM is loaded
+        window.addEventListener('DOMContentLoaded', () => {
+            const startBtn = document.getElementById('start-btn');
+            if (startBtn) {
+                startBtn.onclick = beginGame;
+            }
+        });
+    </script>
+</body>
+</html>
+```
